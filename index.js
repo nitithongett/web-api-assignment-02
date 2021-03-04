@@ -1,34 +1,22 @@
 const express = require('express')
+const MongoClient = require('mongodb').MongoClient
+const ObjectId = require('mongodb').ObjectId
 const app = express()
 
 app.use(express.json())
-let books = [] 
 
-app.get('/books', (req, res) => {
-    //input*
+const url = 'mongodb+srv://superadmin:0822135597@cluster0.e0aem.mongodb.net/book?retryWrites=true&w=majority'
+const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true })
+let db,bookscollection
 
-    //process*
+async function connect(){
+    await client.connect()
+    db = client.db('book')
+    bookscollection = db.collection('books')
+}
+connect()
 
-    //output*
-    res.status(200).json(books)
-})
-
-
-app.get('/books/:id', (req, res) =>{
-    //input*
-    let id = req.params.id
-
-     let book = {} 
-
-    //process*
-    book = books[id] 
-
-    //output*
-    res.status(200).json(book)
-
-})
-
-app.post('/books', (req, res) => { 
+app.post('/books', async (req, res) => { 
 
     //input*
     let newtitle = req.body.title 
@@ -47,10 +35,11 @@ app.post('/books', (req, res) => {
     }
     let bookID = 0
 
-
     //process*
-   books.push(newBook) 
-   bookID = books.length - 1 
+    const result = await bookscollection.insertOne(newBook)
+//    books.push(newBook) 
+    bookID = result.insertedId
+//    bookID = books.length - 1 
 
     //output*
 
@@ -59,3 +48,4 @@ app.post('/books', (req, res) => {
 
 const port = 3000
 app.listen(port, () => console.log(`Server started again at ${port}`))
+
